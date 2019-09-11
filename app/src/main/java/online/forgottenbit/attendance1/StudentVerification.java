@@ -130,42 +130,22 @@ public class StudentVerification extends AppCompatActivity {
     }
 
     private void startVerification(String message) {
-        Log.e("inside ", " method");
+        Log.e("inside : ", "method");
         socketConnectionThread = new OpenSocketConnection(message);
         socketConnectionThread.execute();
 
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        sDB.close();
 
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (socketConnectionThread != null) {
-            socketConnectionThread.cancel(true);
-        }
-
-    }
 
     class OpenSocketConnection extends AsyncTask<Void, Void, Void> {
 
-
         String message;
-
 
         OpenSocketConnection(String message) {
             Log.e("inside ", " thread constructor");
             this.message = message;
         }
-
 
         @Override
         protected void onPreExecute() {
@@ -227,6 +207,8 @@ public class StudentVerification extends AppCompatActivity {
     }
 
     class ReceiveFromServer implements Runnable {
+
+
         @Override
         public void run() {
             try {
@@ -243,10 +225,11 @@ public class StudentVerification extends AppCompatActivity {
                                 Toast.makeText(StudentVerification.this, "Verified", Toast.LENGTH_SHORT).show();
                                 Log.e(StudentVerification.class.getSimpleName(), "  " + b + "  ");
 
-                                if(output!=null){
+                                dialog.cancel();
+
+                                if(output !=null){
                                     output.close();
                                 }
-
                                 if(input!=null){
                                     try {
                                         input.close();
@@ -263,8 +246,6 @@ public class StudentVerification extends AppCompatActivity {
                                     }
                                 }
 
-                                dialog.cancel();
-
                                 startActivity(new Intent(StudentVerification.this, StudentDashBoard.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
                                 finish();
                             } else {
@@ -278,6 +259,34 @@ public class StudentVerification extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        sDB.close();
+
+        if(output !=null){
+            output.close();
+        }
+        if(input!=null){
+            try {
+                input.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (socket != null) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
 }

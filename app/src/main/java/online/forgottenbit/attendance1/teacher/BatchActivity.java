@@ -105,7 +105,7 @@ public class BatchActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.addStudentB:
-                Toast.makeText(this, "Currently not working", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(BatchActivity.this, AddStudent.class).putExtra("batch_id",batch_id));
                 break;
 
             case R.id.addSubjects:

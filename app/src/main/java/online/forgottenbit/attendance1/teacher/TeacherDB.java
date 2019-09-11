@@ -65,11 +65,42 @@ public class TeacherDB extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    public Cursor getStudentByBatch(int batch_id){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select * from "+ table_student_details + " where batch_id = "+ batch_id,null);
+        return res;
+    }
+
+    public Cursor getAllStudent(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select * from "+ table_subject_details,null);
+        return res;
+    }
+
     public Cursor getSubjectByBatch(int batch_id){
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor res = db.rawQuery("select * from "+ table_subject_details + " where batch_id = "+ batch_id,null);
         return res;
     }
+
+    public long insertStudentDetails(String name,String roll, String sap, String email, String course, String batchSec, String mob, String sem, String imei, int batch_id){
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("s_name", name);
+        contentValues.put("s_roll", roll);
+        contentValues.put("s_sap", sap);
+        contentValues.put("s_email", email);
+        contentValues.put("s_course", course);
+        contentValues.put("s_batch_sec", batchSec);
+        contentValues.put("s_mob", mob);
+        contentValues.put("s_sem", sem);
+        contentValues.put("s_imei", imei);
+        contentValues.put("batch_id", batch_id);
+
+        long id = sqLiteDatabase.insert(table_student_details,null,contentValues);
+        return id;
+    }
+
 
     public long insertSubject(int batch_id,String name, String code){
         SQLiteDatabase sqLiteDatabase = getWritableDatabase();

@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:background="@color/colorPrimary"
+    android:layout_height="match_parent">
+
+
+    <EditText
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:hint="Enter Name"
+        android:maxLines="1"
+        android:inputType="text"
+        android:id="@+id/sName"/>
+
+    <EditText
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/sName"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:hint="Enter Roll no(eg. 160105029)"
+        android:maxLines="1"
+        android:maxLength="10"
+        android:inputType="numberDecimal"
+        android:id="@+id/sRoll"/>
+
+    <EditText
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/sRoll"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:hint="Enter  SAP ID(eg. 1000007278)"
+        android:maxLines="1"
+        android:maxLength="10"
+        android:inputType="numberDecimal"
+        android:id="@+id/sSap"/>
+
+    <EditText
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/sSap"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:hint="Enter Course (eg. B.TECH.)"
+        android:maxLines="1"
+        android:inputType="text"
+        android:textAllCaps="true"
+        android:id="@+id/sCourse"/>
+
+    <EditText
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/sCourse"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:textAllCaps="true"
+        android:hint="Enter Branch and Section (eg. IT-A)"
+        android:maxLines="1"
+        android:inputType="text"
+        android:id="@+id/sBranchSec"/>
+
+    <EditText
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/sBranchSec"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:textAllCaps="true"
+        android:hint="Enter Semester (eg. 7)"
+        android:maxLines="1"
+        android:inputType="numberDecimal"
+        android:maxLength="1"
+        android:id="@+id/sSem"/>
+
+    <EditText
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/sSem"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:textAllCaps="true"
+        android:hint="Enter Email ID"
+        android:maxLines="1"
+        android:inputType="textEmailAddress"
+        android:id="@+id/sEmail"/>
+
+    <EditText
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="10dp"
+        android:layout_below="@+id/sEmail"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:hint="Enter Mobile number"
+        android:maxLines="1"
+        android:maxLength="10"
+        android:inputType="numberDecimal"
+        android:id="@+id/sMob"/>
+
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/submitStudentDetails"
+        android:layout_below="@id/sMob"
+        android:layout_marginTop="30dp"
+        android:background="@color/colorCreamChese"
+        android:text="Submit"
+        android:textColor="@color/colorPrimary"/>
+
+</RelativeLayout>

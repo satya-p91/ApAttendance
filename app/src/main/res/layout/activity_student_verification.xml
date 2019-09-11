@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:text="Verify Your Device"
+        android:id="@+id/textVerify"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textVerify"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="20dp"
+        android:id="@+id/sDescLayout">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name : Satya Prakash"
+            android:paddingLeft="10dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:id="@+id/textName"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Roll : 160105029"
+            android:paddingLeft="10dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:id="@+id/textRoll"
+            android:layout_below="@+id/textName"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SAP ID : 1000007278"
+            android:paddingLeft="10dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:id="@+id/textSap"
+            android:layout_below="@+id/textRoll"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Course : B. TECH."
+            android:paddingLeft="10dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:id="@+id/textCourse"
+            android:layout_below="@+id/textSap"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Branch and Section : IT - A"
+            android:paddingLeft="10dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:id="@+id/textBranch"
+            android:layout_below="@+id/textCourse"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Semester : 7"
+            android:paddingLeft="10dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:id="@+id/textSem"
+            android:layout_below="@+id/textBranch"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email : satya@yahoo.com"
+            android:paddingLeft="10dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:id="@+id/textEmail"
+            android:layout_below="@+id/textSem"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mobile : 1234567890"
+            android:paddingLeft="10dp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:id="@+id/textMob"
+            android:layout_below="@+id/textEmail"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@+id/textMob"
+            android:layout_marginTop="30dp">
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Re register"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:background="@color/colorCreamChese"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginRight="30dp"
+                android:id="@+id/btnRegister"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Verify"
+                android:background="@color/colorCreamChese"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginLeft="30dp"
+                android:id="@+id/btnVerify"/>
+        </LinearLayout>
+
+    </RelativeLayout>
+
+
+
+
+</RelativeLayout>

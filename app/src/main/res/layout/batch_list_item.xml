@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="2dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Batch name"
+        android:textSize="20dp"
+        android:textColor="@color/colorPrimary"
+        android:id="@+id/b_name"
+        android:background="@color/colorCreamChese"
+        android:padding="10dp"
+        android:layout_marginBottom="10dp"/>
+
+</LinearLayout>

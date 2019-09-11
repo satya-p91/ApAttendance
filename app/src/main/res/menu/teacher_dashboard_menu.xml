@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/teacher_logout"
+        android:title="Logout"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/add_batch"
+        android:icon="@drawable/batch_add_ic"
+        android:title="add batch"
+        app:showAsAction="always"/>
+
+    <item android:id="@+id/sendEmailAll"
+        android:title="send email to all students"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/generateAllSList"
+        android:title="generate list of students"
+        app:showAsAction="never"/>
+
+
+</menu>

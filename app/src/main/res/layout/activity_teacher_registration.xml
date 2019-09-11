@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/ll"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign Up"
+            android:textSize="18dp"
+            android:fontFamily="monospace"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginRight="20dp"
+            android:id="@+id/singup"/>
+
+        <TextView
+            android:textSize="18dp"
+            android:fontFamily="monospace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign In"
+            android:textStyle="bold"
+            android:textColor="#999999"
+            android:id="@+id/singin"/>
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ll"
+        android:id="@+id/signupLayout"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="30dp">
+
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:background="@color/colorCreamChese"
+            android:paddingLeft="10dp"
+            android:hint="Enter Name"
+            android:textColorHint="@color/colorPrimary"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:id="@+id/editTeacherName"
+            android:maxLines="1"
+            android:inputType="text"/>
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:background="@color/colorCreamChese"
+            android:paddingLeft="10dp"
+            android:hint="Enter Email ID"
+            android:textColorHint="@color/colorPrimary"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="15dp"
+            android:id="@+id/editTeacherEmail"
+            android:layout_below="@+id/editTeacherName"
+            android:maxLines="1"
+            android:inputType="textEmailAddress"/>
+
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:background="@color/colorCreamChese"
+            android:paddingLeft="10dp"
+            android:hint="Enter Mobile number"
+            android:textColorHint="@color/colorPrimary"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="15dp"
+            android:id="@+id/editTeacherMob"
+            android:layout_below="@+id/editTeacherEmail"
+            android:maxLines="1"
+            android:inputType="phone|numberDecimal"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:background="@color/colorPrimary"
+            android:textColor="@color/colorCreamChese"
+            android:text="Submit"
+            android:layout_below="@+id/editTeacherMob"
+            android:layout_marginTop="15dp"
+            android:layout_alignParentRight="true"
+            android:id="@+id/submitTeacherDetails"/>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ll"
+        android:id="@+id/signinLayout"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:visibility="gone"
+        android:layout_marginTop="30dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="If you have used this app before and backed up ypur data then only you can use
+this feature. Currently not working, have to complete"
+            />
+
+    </RelativeLayout>
+
+</RelativeLayout>

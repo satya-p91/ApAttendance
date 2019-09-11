@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#ffffff"
+    android:padding="15dp"
+    android:layout_gravity="center|center_vertical">
+
+    <TextView
+        android:textColor="@color/colorPrimary"
+        android:layout_width="match_parent"
+        android:textAlignment="center"
+        android:layout_height="wrap_content"
+        android:text="Enter Teacher Authentication code"
+        android:textStyle="bold"
+        android:textSize="17dp"
+        android:id="@+id/txt"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:layout_marginTop="15dp"
+        android:layout_below="@+id/txt"
+        android:background="@color/colorCreamChese"
+        android:hint="Enter Passcode here"
+        android:textColor="@color/colorPrimary"
+        android:textColorHint="@color/colorPrimary"
+        android:maxLines="1"
+        android:inputType="numberPassword"
+        android:maxLength="10"
+        android:id="@+id/passcode"
+        android:paddingLeft="10dp"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_below="@+id/passcode"
+        android:layout_marginTop="15dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:text="Cancel"
+        android:layout_alignParentLeft="true"
+        android:id="@+id/cancel"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_below="@+id/passcode"
+        android:layout_marginTop="15dp"
+        android:background="@color/colorCreamChese"
+        android:textColor="@color/colorPrimary"
+        android:text="Confirm"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="5dp"
+        android:id="@+id/confirm"/>
+
+
+
+
+</RelativeLayout>

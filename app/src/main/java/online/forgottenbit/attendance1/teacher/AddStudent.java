@@ -83,7 +83,7 @@ public class AddStudent extends AppCompatActivity {
 
         list = new ArrayList<>();
 
-        Cursor ss = tDb.getSubjectByBatch(batch_id);
+        Cursor ss = tDb.getStudentByBatch(batch_id);
         if(ss!=null && ss.getCount()>0){
             if(list.size()>0){
                 list.clear();
@@ -108,7 +108,7 @@ public class AddStudent extends AppCompatActivity {
     private void refreshLayout(){
         list = new ArrayList<>();
 
-        Cursor ss = tDb.getSubjectByBatch(batch_id);
+        Cursor ss = tDb.getStudentByBatch(batch_id);
         if(ss!=null && ss.getCount()>0){
             if(list.size()>0){
                 list.clear();

@@ -6,8 +6,10 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.DhcpInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -18,28 +20,63 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.ConnectionInfo;
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
+import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.ConnectionsClient;
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
+import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadCallback;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.android.gms.nearby.connection.Strategy;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.Enumeration;
+
+import online.forgottenbit.attendance1.LanConnection.CloseHardwares;
+import online.forgottenbit.attendance1.teacher.ApManager;
 
 public class StudentVerification extends AppCompatActivity {
 
 
-    final int port = 8185;
+    //final int port = 8185;
+    //OpenSocketConnection socketConnectionThread = null;
+    //private PrintWriter output;
+    //private BufferedReader input;
+    //String TEACHER_IP;
+    //Socket socket;
+
     Button verify, reRegister;
     studentDB sDB;
-    String TEACHER_IP;
-    Dialog dialogTAuth;
-    View view;
-    Socket socket;
+    private static final Strategy STRATEGY = Strategy.P2P_STAR;
+    String teacherID,myName;
+
 
     String sendsDetailsString = null;
     ProgressDialog dialog;
-    OpenSocketConnection socketConnectionThread = null;
-    private PrintWriter output;
-    private BufferedReader input;
+
+    ConnectionsClient connectionsClient;
+
+    CloseHardwares closeHardwares;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +94,7 @@ public class StudentVerification extends AppCompatActivity {
 
         TextView name = findViewById(R.id.textName);
         name.setText(Html.fromHtml("<b>Name : </b>" + ss.getString(0)));
+        myName = ss.getString(0);
 
         TextView roll = findViewById(R.id.textRoll);
         roll.setText(Html.fromHtml("<b>Roll : </b>" + ss.getString(1)));
@@ -95,198 +133,180 @@ public class StudentVerification extends AppCompatActivity {
         });
 
 
+        connectionsClient = Nearby.getConnectionsClient(StudentVerification.this);
+
+        closeHardwares = new CloseHardwares(getApplicationContext());
+
         verify.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                dialogTAuth = new Dialog(StudentVerification.this);
-                LayoutInflater inflater = StudentVerification.this.getLayoutInflater();
-                view = inflater.inflate(R.layout.custom_student_side_verification_ip_input, null);
-                dialogTAuth.setContentView(view);
-                dialogTAuth.show();
-
-                view.findViewById(R.id.ip_submit).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        EditText ee = view.findViewById(R.id.teacher_ip);
-                        TEACHER_IP = ee.getText().toString().trim();
-
-                        Toast.makeText(StudentVerification.this, "inside click", Toast.LENGTH_SHORT).show();
-                        if (!TEACHER_IP.isEmpty()) {
-                            Log.e("inside ", " if");
-                            startVerification(sendsDetailsString);
-                        } else {
-                            Toast.makeText(StudentVerification.this, "Enter IP address", Toast.LENGTH_SHORT).show();
-                        }
-
-                        dialogTAuth.cancel();
-                    }
-                });
-
-
+                new AlertDialog.Builder(StudentVerification.this)
+                        .setTitle("Notification")
+                        .setIcon(R.drawable.ic_warning_black_24dp)
+                        .setMessage("To verify your device please open your location and and check if app have permissions granted.")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                startVerification();
+                                dialog.cancel();
+                            }
+                        }).show();
             }
         });
 
     }
+    public void startVerification(){
 
-    private void startVerification(String message) {
-        Log.e("inside : ", "method");
-        socketConnectionThread = new OpenSocketConnection(message);
-        socketConnectionThread.execute();
-
-    }
-
-
-
-    class OpenSocketConnection extends AsyncTask<Void, Void, Void> {
-
-        String message;
-
-        OpenSocketConnection(String message) {
-            Log.e("inside ", " thread constructor");
-            this.message = message;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            dialog = new ProgressDialog(StudentVerification.this);
-            dialog.setMessage("Processing");
-            dialog.show();
-        }
-
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            try {
-                Log.e("inside ", " thread do in background");
-                socket = new Socket(TEACHER_IP, port);
-                socket.setKeepAlive(true);
-
-                output = new PrintWriter(socket.getOutputStream());
-                input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(StudentVerification.this, "Connection Established", Toast.LENGTH_LONG).show();
-                        Log.e(StudentVerification.class.getSimpleName(), "Connection Established");
-                    }
-                });
-
-                output.write(message + "\n");
-                output.flush();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(StudentVerification.this, "data sending to server...", Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-
-                new Thread(new ReceiveFromServer()).start();
-
-                return null;
-
-            } catch (IOException e) {
-                e.printStackTrace();
+        dialog = new ProgressDialog(StudentVerification.this);
+        dialog.setCancelable(false);
+        dialog.setMessage("Verification started");
+        dialog.setButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                connectionsClient.stopDiscovery();
+                connectionsClient.stopAllEndpoints();
+                Toast.makeText(StudentVerification.this, "Verification cancelled by you", Toast.LENGTH_LONG).show();
+                dialog.cancel();
             }
+        });
+        dialog.show();
 
-            return null;
-        }
-
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            Log.e("inside ", " thread post execute");
-            super.onPostExecute(aVoid);
-
-        }
+        startDiscovery();
     }
 
-    class ReceiveFromServer implements Runnable {
 
-
+    private EndpointDiscoveryCallback endpointDiscoveryCallback = new EndpointDiscoveryCallback() {
         @Override
-        public void run() {
-            try {
-                final String receivedMessage = input.readLine();
+        public void onEndpointFound(@NonNull String s, @NonNull DiscoveredEndpointInfo discoveredEndpointInfo) {
+            Log.e("EndPointFound", "End point found " + s);
 
-                if (!receivedMessage.isEmpty()) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            if (receivedMessage.equals("teacherConfirm8185")) {
-
-                                boolean b = sDB.updateSVerification();
-                                Toast.makeText(StudentVerification.this, "Verified", Toast.LENGTH_SHORT).show();
-                                Log.e(StudentVerification.class.getSimpleName(), "  " + b + "  ");
-
-                                dialog.cancel();
-
-                                if(output !=null){
-                                    output.close();
-                                }
-                                if(input!=null){
-                                    try {
-                                        input.close();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-
-                                if (socket != null) {
-                                    try {
-                                        socket.close();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-
-                                startActivity(new Intent(StudentVerification.this, StudentDashBoard.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
-                                finish();
-                            } else {
-                                Toast.makeText(StudentVerification.this, "Not valid message reveived : " + receivedMessage, Toast.LENGTH_SHORT).show();
-                            }
-
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            if(discoveredEndpointInfo.getEndpointName().equals("teacher")){
+                connectionsClient.requestConnection(myName, s, connectionLifecycleCallback);
+                dialog.setMessage("Teacher device found");
+                connectionsClient.stopDiscovery();
             }
         }
-    }
 
+        @Override
+        public void onEndpointLost(@NonNull String s) {
+
+        }
+    };
+
+    // Callbacks for connections to other devices
+    private ConnectionLifecycleCallback connectionLifecycleCallback = new ConnectionLifecycleCallback() {
+        @Override
+        public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
+
+            Log.e("Teacher", "onConnectionInitiated: accepting connection");
+            connectionsClient.acceptConnection(endpointId, payloadCallback);
+            Log.e("ConnectionSenderName: ", connectionInfo.getEndpointName());
+            dialog.setMessage("Connecting with teacher device...");
+
+        }
+
+        @Override
+        public void onConnectionResult(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
+            if (connectionResolution.getStatus().isSuccess()) {
+
+                Log.e("ConnectionLifeCycle", "onConnectionResult: connection successful");
+                Toast.makeText(StudentVerification.this, "Connection successful", Toast.LENGTH_SHORT).show();
+
+                dialog.setMessage("Connected with teacher device");
+                teacherID = endpointId;
+                connectionsClient.sendPayload(teacherID,Payload.fromBytes(sendsDetailsString.getBytes()));
+                connectionsClient.stopDiscovery();
+
+            } else {
+                Log.e("ConnectionLifeCycle", "onConnectionResult: connection failed");
+            }
+        }
+
+        @Override
+        public void onDisconnected(@NonNull String endpointId) {
+            Log.i("ConnectionLifeCycle", "onDisconnected: disconnected from the opponent");
+        }
+    };
 
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        sDB.close();
+    protected void onStop() {
+        super.onStop();
+        connectionsClient.stopDiscovery();
+        connectionsClient.stopAllEndpoints();
 
-        if(output !=null){
-            output.close();
+        if(closeHardwares.isWifiEnabled()){
+            closeHardwares.closeWifi();
         }
-        if(input!=null){
-            try {
-                input.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if(closeHardwares.isBluetoothEnabled()){
+            closeHardwares.closeBluetooth();
         }
 
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
+        dialog.cancel();
     }
+
+    /** Callbacks for receiving payloads*/
+    private PayloadCallback payloadCallback = new PayloadCallback() {
+        @Override
+        public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
+            Log.e("ReceivedFrom: ", s);
+            String fromTeacher = new String(payload.asBytes());
+
+            Toast.makeText(StudentVerification.this, "ReceivedFrom : "+s, Toast.LENGTH_SHORT).show();
+            Log.e("fromTeacher : ", fromTeacher);
+
+            if(fromTeacher.equals("teacherConfirm8185")){
+                boolean b = sDB.updateSVerification();
+                Toast.makeText(StudentVerification.this, "Verified " +b, Toast.LENGTH_SHORT).show();
+                Log.e(StudentVerification.class.getSimpleName(), "  " + b + "  ");
+                dialog.cancel();
+                connectionsClient.stopAllEndpoints();
+                connectionsClient.stopDiscovery();
+                if(closeHardwares.isBluetoothEnabled()){
+                    closeHardwares.closeBluetooth();
+                }
+                if(closeHardwares.isWifiEnabled()){
+                    closeHardwares.closeWifi();
+                }
+                startActivity(new Intent(StudentVerification.this, StudentDashBoard.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                finish();
+
+            }else {
+                Toast.makeText(StudentVerification.this, "Rejected with msg : "+ fromTeacher, Toast.LENGTH_LONG).show();
+                dialog.cancel();
+                connectionsClient.stopAllEndpoints();
+                connectionsClient.stopDiscovery();
+            }
+
+        }
+
+        @Override
+        public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
+
+        }
+    };
+
+
+    /**
+     * Starts looking for other players using Nearby Connections.
+     */
+    private void startDiscovery() {
+
+        connectionsClient.startDiscovery(getPackageName(), endpointDiscoveryCallback,
+                new DiscoveryOptions.Builder().setStrategy(STRATEGY).build()).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                Log.e("StartDiscovery", "We are Discovering");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("StartAdvertise", "We are unable to Discover");
+            }
+        });
+    }
+
+
+
 
 }

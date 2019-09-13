@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class TeacherDB extends SQLiteOpenHelper {
 
@@ -14,6 +15,7 @@ public class TeacherDB extends SQLiteOpenHelper {
     public static final String table_batch_details = "batch_details";
     public static final String table_subject_details = "subject_details";
     public static final String table_student_details = "student_details";
+    public static final String table_attendance_details = "attendance_details";
 
 
     public TeacherDB(Context context) {
@@ -42,6 +44,14 @@ public class TeacherDB extends SQLiteOpenHelper {
                 + "code" + " TEXT"
                 + ")");
 
+        db.execSQL("Create table " + table_attendance_details + "("
+                + "batch_id" + " INTEGER,"
+                + "subject_id" + " INTEGER,"
+                + "student_roll" + " TEXT,"
+                + "time_stamp" + " TEXT,"
+                + "AorP" + " INTEGER"
+                + ")");
+
         db.execSQL("Create table " + table_student_details + "("
                 + "s_name" + " TEXT,"
                 + "s_roll" + " TEXT,"
@@ -62,8 +72,30 @@ public class TeacherDB extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + table_batch_details);
         db.execSQL("DROP TABLE IF EXISTS " + table_student_details);
         db.execSQL("DROP TABLE IF EXISTS " + table_subject_details);
+        db.execSQL("DROP TABLE IF EXISTS " + table_attendance_details);
         onCreate(db);
     }
+
+    public Cursor getAttendance(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor res = db.rawQuery("select * from "+ table_student_details,null);
+        return res;
+    }
+
+    public long insertAttendance(int batch_id, int subject_id,String roll, String timeStamp, int AorP){
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("batch_id", batch_id);
+        contentValues.put("subject_id", subject_id);
+        contentValues.put("student_roll", roll);
+        contentValues.put("time_stamp", timeStamp);
+        contentValues.put("AorP", AorP);
+
+        long id = sqLiteDatabase.insert(table_student_details,null,contentValues);
+        Log.e("Inserted into data base","   "+id+"  ");
+        return id;
+    }
+
 
     public Cursor getStudentByBatch(int batch_id){
         SQLiteDatabase db = this.getWritableDatabase();
@@ -98,6 +130,7 @@ public class TeacherDB extends SQLiteOpenHelper {
         contentValues.put("batch_id", batch_id);
 
         long id = sqLiteDatabase.insert(table_student_details,null,contentValues);
+        Log.e("Inserted into data base","   "+id+"  ");
         return id;
     }
 
@@ -153,11 +186,12 @@ public class TeacherDB extends SQLiteOpenHelper {
 
         ContentValues contentValues = new ContentValues();
         contentValues.put("name", name);
-
         long id = db.insert(table_batch_details, null, contentValues);
         db.close();
         return id;
     }
+
+
 
     public Cursor getAllBatch() {
         SQLiteDatabase db = getWritableDatabase();

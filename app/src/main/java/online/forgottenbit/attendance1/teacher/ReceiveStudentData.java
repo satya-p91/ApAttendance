@@ -6,295 +6,253 @@ import android.content.DialogInterface;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Enumeration;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.AdvertisingOptions;
+import com.google.android.gms.nearby.connection.ConnectionInfo;
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
+import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.ConnectionsClient;
+import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadCallback;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.android.gms.nearby.connection.Strategy;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+
+import online.forgottenbit.attendance1.LanConnection.CloseHardwares;
 import online.forgottenbit.attendance1.R;
 
 public class ReceiveStudentData extends AppCompatActivity {
 
-    public static final int SERVER_PORT = 8185;
-    public static String SERVER_IP = "";
-    ServerSocket serverSocket;
-    Socket socket;
-    TextView tvIP, tvPort;
 
-    String []sDetails;
+    private static final Strategy STRATEGY = Strategy.P2P_STAR;
 
-    private PrintWriter output;
-    private BufferedReader input;
+    ConnectionsClient connectionsClient;
 
+    String[] sDetails;
     TeacherDB tDB;
-
     int BATCH_ID;
+    AlertDialog dd;
+    String studentID, studentDetails, sName;
+    Button start, stop;
+    TextView textStatus;
 
-    StartConnectionWithStudent socketConnectionThread;
+    private CloseHardwares closeHardwares;
+    /**
+     * Callbacks for receiving payloads
+     */
+    private PayloadCallback payloadCallback = new PayloadCallback() {
+        @Override
+        public void onPayloadReceived(@NonNull String endpointId, @NonNull Payload payload) {
+            Log.e("ReceivedFrom: ", endpointId);
+            studentDetails = new String(payload.asBytes());
+            textStatus.setText("Receiving data from " + sName);
+            Log.e("StudentDetails : ", studentDetails);
+            try {
+                sDetails = parseReceivedData(studentDetails);
+                showPopDialog();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
+        }
+
+        @Override
+        public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
+
+        }
+    };
+    /**
+     * Callback for connection to students devices
+     */
+    private final ConnectionLifecycleCallback connectionLifecycleCallback = new ConnectionLifecycleCallback() {
+        @Override
+        public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
+            Log.e("TeacherServer", "onConnectionInitiated: accepting connection");
+            textStatus.setText("Connection Initiated with " + connectionInfo.getEndpointName());
+            sName = connectionInfo.getEndpointName();
+            connectionsClient.acceptConnection(endpointId, payloadCallback);
+            Log.e("ConnectionSenderName: ", connectionInfo.getEndpointName());
+        }
+
+        @Override
+        public void onConnectionResult(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
+
+            if (connectionResolution.getStatus().isSuccess()) {
+                Log.e("ConnectionLifeCycle", "onConnectionResult: connection successful with : " + sName);
+
+                textStatus.setText("connection successful with : " + endpointId);
+                studentID = endpointId;
+            } else {
+                Log.i("ConnectionLifeCycle", "onConnectionResult: connection failed");
+
+                textStatus.setText("connection failed with : " + sName);
+            }
+
+        }
+
+        @Override
+        public void onDisconnected(@NonNull String endpointId) {
+            Log.i("ConnectionLifeCycle", "onDisconnected: disconnected from the student");
+
+            textStatus.setText("connection successful with : " + sName);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receive_student_data);
-
+/*
         try {
             SERVER_IP = getLocalIpAddress();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
-
         tvIP = findViewById(R.id.tvIP);
-        tvPort = findViewById(R.id.tvPort);
+        tvPort = findViewById(R.id.tvPort);*/
+
+/* socketConnectionThread = new StartConnectionWithStudent();
+        socketConnectionThread.execute();*/
+
         tDB = new TeacherDB(ReceiveStudentData.this);
 
-        BATCH_ID = getIntent().getIntExtra("batch_id",0);
+        BATCH_ID = getIntent().getIntExtra("batch_id", 0);
 
-        socketConnectionThread = new StartConnectionWithStudent();
-        socketConnectionThread.execute();
+        connectionsClient = Nearby.getConnectionsClient(this);
+
+        closeHardwares = new CloseHardwares(getApplicationContext());
+
+        stop = findViewById(R.id.stopAdvertising);
+        start = findViewById(R.id.startAdvertising);
+        textStatus = findViewById(R.id.textStatus);
 
 
-    }
+        stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                disconnect();
 
-    private String getLocalIpAddress() throws UnknownHostException {
-
-        if (ApManager.isApOn(this)) {
-
-            try {
-                for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
-                     en.hasMoreElements(); ) {
-                    NetworkInterface intf = en.nextElement();
-                    if (intf.getName().contains("wlan")) {
-
-                        for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                            InetAddress inetAddress = enumIpAddr.nextElement();
-                            if (!inetAddress.isLoopbackAddress() && (inetAddress.getAddress().length == 4)) {
-                                Log.e("error", inetAddress.getHostAddress());
-                                return inetAddress.getHostAddress();
-                            }
-                        }
-                    }
-                }
-            } catch (SocketException ex) {
-                Log.e("error", ex.toString());
             }
+        });
 
-        } else {
-            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-
-            if (wifiManager != null) {
-                WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                int ipInt = wifiInfo.getIpAddress();
-                Log.e("IP address : ", InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array()).getHostAddress());
-                return InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array()).getHostAddress();
+        start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                start.setEnabled(false);
+                startAdvertising();
             }
-        }
+        });
 
-        return null;
-
-    }
-
-
-    class StartConnectionWithStudent extends AsyncTask<Void, Void, Void>{
-
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            Toast.makeText(ReceiveStudentData.this, "Ready for connection", Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-
-            try {
-
-                if(serverSocket!= null && serverSocket.isBound()){
-                    serverSocket.close();
-                }
-                serverSocket = new ServerSocket(SERVER_PORT);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        tvIP.setText("IP: " + SERVER_IP);
-                        tvPort.setText("Port: " + String.valueOf(SERVER_PORT));
-                    }
-                });
-                try {
-                    socket = serverSocket.accept();
-                    socket.setKeepAlive(true);
-                    output = new PrintWriter(socket.getOutputStream());
-
-                    input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                    new Thread(new Thread2(input)).start();
-                } catch (IOException e) {
-                    Log.e("In theard 1", e.getMessage());
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-            return null;
-        }
-
-
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-        }
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        tDB.close();
-
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        if (output != null){
-            output.close();
-        }
-        if(input!=null){
-            try {
-                input.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (socketConnectionThread != null) {
-            socketConnectionThread.cancel(true);
-        }
-
+    protected void onStop() {
+        super.onStop();
+        disconnect();
     }
 
-    private String[] parseReceivedData(String receivedData){
-        String []val = receivedData.split("#");
+    /**
+     * Broadcasts our presence using Nearby Connections so other players can find us.
+     */
+    private void startAdvertising() {
+
+        connectionsClient.startAdvertising("teacher", getPackageName(), connectionLifecycleCallback,
+                new AdvertisingOptions.Builder().setStrategy(STRATEGY).build())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.e("StartAdvertise", "We are Advertising");
+                        textStatus.setText("Started Advertising");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("StartAdvertise", "We are unable to Advertise");
+                textStatus.setText("unable to Advertise, Reopen the app");
+            }
+        });
+    }
+
+    private void showPopDialog() {
+        new AlertDialog.Builder(ReceiveStudentData.this)
+                .setCancelable(false)
+                .setTitle("Verify student")
+                .setMessage(Html.fromHtml("<b>Name : </b>" + sDetails[0] + "<br><b>Roll : </b>" + sDetails[1] + "<br><b>Sem : </b>" + sDetails[7]))
+                .setNegativeButton("Reject", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        sendMessage("Rejected", studentID);
+                        connectionsClient.disconnectFromEndpoint(studentID);
+                        dialog.cancel();
+
+                    }
+                })
+                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        long a = tDB.insertStudentDetails(sDetails[0], sDetails[1], sDetails[2], sDetails[3], sDetails[4], sDetails[5], sDetails[6], sDetails[7], sDetails[8], BATCH_ID);
+
+                        Log.e("isInsertedInDB", a + " ");
+
+                        sendMessage("teacherConfirm8185", studentID);
+                        connectionsClient.disconnectFromEndpoint(studentID);
+                        sDetails = null;
+
+                        //TODO : have to add condition if student data is already in teacher device and student is re-registering himself
+                        dialog.cancel();
+
+                    }
+                }).show();
+    }
+
+
+    /**
+     * send message to given student id, Can only used by teacher side
+     */
+    private void sendMessage(String message, String studentID) {
+        Payload payload = Payload.fromBytes(message.getBytes());
+        connectionsClient.sendPayload(studentID, payload);
+    }
+
+    /**
+     * Disconnects from the opponent and reset the UI.
+     */
+    public void disconnect() {
+        Log.e("ConnectionClientServer", "Stopping all functionality");
+        if (textStatus != null) {
+            textStatus.setText("Stop registering students");
+        }
+        connectionsClient.stopAllEndpoints();
+        connectionsClient.stopAdvertising();
+
+        if(closeHardwares.isBluetoothEnabled()){
+            closeHardwares.closeBluetooth();
+        }
+
+        if(closeHardwares.isWifiEnabled()){
+            closeHardwares.closeWifi();
+        }
+    }
+
+
+    private String[] parseReceivedData(String receivedData) {
+        String[] val = receivedData.split("#");
         return val;
     }
 
-    class Thread2 implements Runnable {
-
-        private BufferedReader ipObj;
-
-        Thread2(BufferedReader ipObj) {
-            this.ipObj = ipObj;
-        }
-
-        @Override
-        public void run() {
-            while (true) {
-                try {
-
-                    if (ipObj == null) {
-                        Log.e("Err", "null obj is passed");
-                    }
-                    final String message = ipObj.readLine();
-
-                    Log.e("msgServerReceive",":  "+message);
-
-                    if (message != null) {
-                        sDetails = parseReceivedData(message);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                new AlertDialog.Builder(ReceiveStudentData.this)
-                                        .setCancelable(false)
-                                        .setTitle("Verify student")
-                                        .setMessage(Html.fromHtml("<b>Name : </b>"+sDetails[0]+"<br><b>Roll : </b>"+sDetails[1]))
-                                        .setNegativeButton("Reject", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                new Thread(new Thread3("Reject")).start();
-
-
-                                                dialog.cancel();
-
-                                            }
-                                        })
-                                        .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-
-                                                new Thread(new Thread3("teacherConfirm8185")).start();
-
-                                                tDB.insertStudentDetails(sDetails[0],sDetails[1],sDetails[2],sDetails[3],sDetails[4],sDetails[5],sDetails[6],sDetails[7],sDetails[8],BATCH_ID);
-                                                //TODO : have to add condition if student data is already in teacher device and student is re-registering himself
-                                                dialog.cancel();
-
-                                                socketConnectionThread = new StartConnectionWithStudent();
-                                                socketConnectionThread.execute();
-                                            }
-                                        }).show();
-                            }
-                        });
-                    } else {
-
-                        Log.e("msgServerReceive","Error hai thread 2 server");
-
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                socketConnectionThread = new StartConnectionWithStudent();
-                                socketConnectionThread.execute();
-                            }
-                        });
-                        return;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    class Thread3 implements Runnable {
-        private String message;
-
-        Thread3(String message) {
-            this.message = message;
-        }
-
-        @Override
-        public void run() {
-            output.write(message+"\n");
-            output.flush();
-            Log.e("msgServerSend",message);
-
-            try {
-                output.close();
-                input.close();
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

@@ -48,12 +48,12 @@ public class StudentListAdapter extends BaseAdapter {
         TextView textView = rowView.findViewById(R.id.studentName);
         TextView textViewCode = rowView.findViewById(R.id.studentEmail);
 
-        textView.append(Html.fromHtml("<b>Name : </b>"+id.get(position).getName()));
+        textView.setText(Html.fromHtml("<b>Name : </b>"+id.get(position).getName()));
         textView.append("     "+Html.fromHtml("<b>Roll : </b>"+id.get(position).getRoll()));
 
 
-        textViewCode.append(Html.fromHtml("<b>Subject code : </b>"+id.get(position).getEmail()));
-        textViewCode.append("     "+Html.fromHtml("<b>Subject code : </b>"+id.get(position).getMob()));
+        textViewCode.setText(Html.fromHtml("<b>Email : </b>"+id.get(position).getEmail()));
+        textViewCode.append("     "+Html.fromHtml("<b>Mob : </b>"+id.get(position).getMob()));
         return rowView;
 
     }

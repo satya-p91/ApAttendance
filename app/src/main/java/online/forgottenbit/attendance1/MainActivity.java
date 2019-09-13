@@ -9,11 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -23,6 +19,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import online.forgottenbit.attendance1.teacher.TeacherDB;
 import online.forgottenbit.attendance1.teacher.TeacherDashboard;
@@ -46,7 +47,9 @@ public class MainActivity extends AppCompatActivity {
 
         sDB = new studentDB(MainActivity.this);
         teacherDB = new TeacherDB(MainActivity.this);
-
+        if(!defaultPermissionCheck()){
+            askForPermission();
+        }
         try{
             Cursor s = sDB.getSRegDetails();
 
@@ -175,7 +178,13 @@ public class MainActivity extends AppCompatActivity {
 
         //asking  for storage permission from user at runtime
 
-        ActivityCompat.requestPermissions(this,new String[] {
+        ActivityCompat.requestPermissions(this,new String[] {Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_WIFI_STATE,
+                Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.INTERNET,
                 Manifest.permission.READ_PHONE_STATE
         },permission_req_code);
 
@@ -186,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull  String[] permissions, @NonNull int[] grantResults) {
 
         //checking if user granted the permissions or not
 
@@ -202,8 +211,18 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean defaultPermissionCheck() {
         //checking if permissions is already granted
+        int internet = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.INTERNET);
+        int fine = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION);
+        int corse = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION);
+        int access = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_WIFI_STATE);
+        int change = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CHANGE_WIFI_STATE);
+        int bt = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.BLUETOOTH);
+        int btAdmin = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.BLUETOOTH_ADMIN);
+
         int external_storage_write = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_PHONE_STATE);
-        return external_storage_write == PackageManager.PERMISSION_GRANTED;
+        return internet == PackageManager.PERMISSION_GRANTED && fine == PackageManager.PERMISSION_GRANTED && corse == PackageManager.PERMISSION_GRANTED &&
+                access == PackageManager.PERMISSION_GRANTED && change == PackageManager.PERMISSION_GRANTED && bt == PackageManager.PERMISSION_GRANTED &&
+                btAdmin == PackageManager.PERMISSION_GRANTED&&external_storage_write == PackageManager.PERMISSION_GRANTED;
     }
 
 

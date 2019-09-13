@@ -4,21 +4,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_margin = "16dp"
-    tools:context=".MainActivity">
+    android:layout_margin = "16dp">
 
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/startAdvertising"
+        android:text="Start"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="16dp"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/stopAdvertising"
+        android:text="Stop"
+        android:layout_alignParentRight="true"
+        android:layout_margin="16dp"/>
 
     <TextView
-        android:id = "@+id/tvIP"
-        android:layout_width = "wrap_content"
-        android:layout_height = "wrap_content"
-        android:textAppearance = "@style/Base.TextAppearance.AppCompat.Medium" />
-    <TextView
-        android:id = "@+id/tvPort"
-        android:layout_width = "wrap_content"
-        android:layout_height = "wrap_content"
-        android:layout_below = "@+id/tvIP"
-        android:textAppearance = "@style/Base.TextAppearance.AppCompat.Medium" />
-
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/startAdvertising"
+        android:id="@+id/textStatus"
+        android:padding="5dp"/>
 
 </RelativeLayout>

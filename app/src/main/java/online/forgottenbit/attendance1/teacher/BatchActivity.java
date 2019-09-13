@@ -82,7 +82,7 @@ public class BatchActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent i = new Intent(BatchActivity.this, BatchAndSubWiseAtten.class);
                 i.putExtra("name",list.get(position).getName());
-                i.putExtra("id",list.get(position).getId());
+                i.putExtra("sub_id",list.get(position).getId());
                 i.putExtra("code",list.get(position).getCode());
                 i.putExtra("batch_id",batch_id);
                 startActivity(i);

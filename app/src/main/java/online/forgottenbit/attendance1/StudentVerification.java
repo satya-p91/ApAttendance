@@ -155,6 +155,7 @@ public class StudentVerification extends AppCompatActivity {
         });
 
     }
+
     public void startVerification(){
 
         dialog = new ProgressDialog(StudentVerification.this);
@@ -165,6 +166,13 @@ public class StudentVerification extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
                 connectionsClient.stopDiscovery();
                 connectionsClient.stopAllEndpoints();
+                Log.e("StudentVerification","Stopped all service");
+                if(closeHardwares.isBluetoothEnabled()){
+                    closeHardwares.closeBluetooth();
+                }
+                if(closeHardwares.isWifiEnabled()){
+                    closeHardwares.closeWifi();
+                }
                 Toast.makeText(StudentVerification.this, "Verification cancelled by you", Toast.LENGTH_LONG).show();
                 dialog.cancel();
             }
@@ -214,7 +222,7 @@ public class StudentVerification extends AppCompatActivity {
 
                 dialog.setMessage("Connected with teacher device");
                 teacherID = endpointId;
-                connectionsClient.sendPayload(teacherID,Payload.fromBytes(sendsDetailsString.getBytes()));
+                connectionsClient.sendPayload(endpointId,Payload.fromBytes(sendsDetailsString.getBytes()));
                 connectionsClient.stopDiscovery();
 
             } else {

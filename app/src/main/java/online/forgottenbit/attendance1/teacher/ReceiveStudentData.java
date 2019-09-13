@@ -145,6 +145,8 @@ public class ReceiveStudentData extends AppCompatActivity {
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                start.setEnabled(true);
+                stop.setEnabled(false);
                 disconnect();
 
             }
@@ -154,6 +156,7 @@ public class ReceiveStudentData extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 start.setEnabled(false);
+                stop.setEnabled(true);
                 startAdvertising();
             }
         });

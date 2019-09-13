@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -14,10 +15,28 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.ConnectionInfo;
+import com.google.android.gms.nearby.connection.ConnectionLifecycleCallback;
+import com.google.android.gms.nearby.connection.ConnectionResolution;
+import com.google.android.gms.nearby.connection.ConnectionsClient;
+import com.google.android.gms.nearby.connection.DiscoveredEndpointInfo;
+import com.google.android.gms.nearby.connection.DiscoveryOptions;
+import com.google.android.gms.nearby.connection.EndpointDiscoveryCallback;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.PayloadCallback;
+import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
+import com.google.android.gms.nearby.connection.Strategy;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
+import online.forgottenbit.attendance1.LanConnection.CloseHardwares;
 
 public class StudentDashBoard extends AppCompatActivity {
 
@@ -26,7 +45,17 @@ public class StudentDashBoard extends AppCompatActivity {
 
     Button markAttendance;
 
-    Timer myTimer;
+    private static final Strategy STRATEGY = Strategy.P2P_STAR;
+    String teacherID,myName;
+
+
+    String sendsDetailsString = null;
+    ProgressDialog dialog;
+
+    ConnectionsClient connectionsClient;
+
+    CloseHardwares closeHardwares;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,81 +66,194 @@ public class StudentDashBoard extends AppCompatActivity {
 
         checkCredentials();
 
-        myTimer = new Timer();
-
         markAttendance = findViewById(R.id.btnMarkAttendance);
+
+        connectionsClient = Nearby.getConnectionsClient(StudentDashBoard.this);
+
+        closeHardwares = new CloseHardwares(getApplicationContext());
 
         markAttendance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final ProgressDialog dialog = new ProgressDialog(StudentDashBoard.this);
-                dialog.setMessage("Connecting with teacher's device around you");
-                dialog.setCancelable(false);
-                dialog.setButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                        myTimer.cancel();
-
-                    }
-                });
-
-                dialog.show();
-
-                myTimer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        dialog.cancel();
-                        TimerMethod();
-                    }
-                },2500);
-
-
-
-
+                new AlertDialog.Builder(StudentDashBoard.this)
+                        .setTitle("Notification")
+                        .setIcon(R.drawable.ic_warning_black_24dp)
+                        .setMessage("To mark your attendance please open your location and and check if app have permissions granted.")
+                        .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                startAttendance();
+                                dialog.cancel();
+                            }
+                        }).show();
             }
         });
     }
 
-    private void TimerMethod()
-    {
-        //This method is called directly by the timer
-        //and runs in the same thread as the timer.
+    private void startAttendance() {
 
-        //We call the method that will work with the UI
-        //through the runOnUiThread method.
-        this.runOnUiThread(Timer_Tick);
+        dialog = new ProgressDialog(StudentDashBoard.this);
+        dialog.setCancelable(false);
+        dialog.setMessage("Attendance started");
+        dialog.setButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                connectionsClient.stopDiscovery();
+                connectionsClient.stopAllEndpoints();
+                if(closeHardwares.isBluetoothEnabled()){
+                    closeHardwares.closeBluetooth();
+                }
+                if(closeHardwares.isWifiEnabled()){
+                    closeHardwares.closeWifi();
+                }
+                Toast.makeText(StudentDashBoard.this, "Attendance cancelled by you", Toast.LENGTH_LONG).show();
+                dialog.cancel();
+            }
+        });
+        dialog.show();
+
+        startDiscovery();
+
     }
-    private Runnable Timer_Tick = new Runnable() {
-        public void run() {
 
-            //This method runs in the same thread as the UI.
+    /**
+     * Starts looking for other players using Nearby Connections.
+     */
+    private void startDiscovery() {
 
-            //Do something to the UI thread here
+        connectionsClient.startDiscovery(getPackageName(), endpointDiscoveryCallback,
+                new DiscoveryOptions.Builder().setStrategy(STRATEGY).build()).addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                Log.e("StartDiscovery", "We are Discovering");
+                dialog.setMessage("Started Searching teacher device");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(StudentDashBoard.this, "Failed", Toast.LENGTH_SHORT).show();
+                dialog.cancel();
+                connectionsClient.stopDiscovery();
+                Log.e("StartAdvertise", "We are unable to Discover");
+            }
+        });
+    }
 
-            markAttendceF();
+    private EndpointDiscoveryCallback endpointDiscoveryCallback = new EndpointDiscoveryCallback() {
+        @Override
+        public void onEndpointFound(@NonNull String s, @NonNull DiscoveredEndpointInfo discoveredEndpointInfo) {
+            Log.e("EndPointFound", "End point found " + s);
+
+            if(discoveredEndpointInfo.getEndpointName().equals("teacher")){
+                connectionsClient.requestConnection(myName, s, connectionLifecycleCallback);
+                dialog.setMessage("Teacher device found");
+                connectionsClient.stopDiscovery();
+            }
+        }
+
+        @Override
+        public void onEndpointLost(@NonNull String s) {
 
         }
     };
 
-    public void markAttendceF(){
-        new AlertDialog.Builder(StudentDashBoard.this)
-                .setCancelable(false)
-                .setTitle("Mark Attendance")
-                .setMessage(Html.fromHtml("Teacher <b>XYZ</b> is marking attendance for <b>DA7211</b>."))
-                .setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                }).show();
+    /** Callbacks for connections to other devices*/
+    private ConnectionLifecycleCallback connectionLifecycleCallback = new ConnectionLifecycleCallback() {
+        @Override
+        public void onConnectionInitiated(@NonNull String endpointId, @NonNull ConnectionInfo connectionInfo) {
+
+            Log.e("Teacher", "onConnectionInitiated: accepting connection");
+            connectionsClient.acceptConnection(endpointId, payloadCallback);
+            Log.e("ConnectionSenderName: ", connectionInfo.getEndpointName());
+            dialog.setMessage("Connecting with teacher device...");
+
+        }
+
+        @Override
+        public void onConnectionResult(@NonNull String endpointId, @NonNull ConnectionResolution connectionResolution) {
+            if (connectionResolution.getStatus().isSuccess()) {
+
+                Log.e("ConnectionLifeCycle", "onConnectionResult: connection successful");
+                Toast.makeText(StudentDashBoard.this, "Connection successful", Toast.LENGTH_SHORT).show();
+
+                dialog.setMessage("Connected with teacher device");
+                teacherID = endpointId;
+                connectionsClient.sendPayload(teacherID, Payload.fromBytes(sendsDetailsString.getBytes()));
+                connectionsClient.stopDiscovery();
+
+            } else {
+                Log.e("ConnectionLifeCycle", "onConnectionResult: connection failed");
+            }
+        }
+
+        @Override
+        public void onDisconnected(@NonNull String endpointId) {
+            Log.i("ConnectionLifeCycle", "onDisconnected: disconnected from the opponent");
+        }
+    };
+
+    /** Callbacks for receiving payloads*/
+    private PayloadCallback payloadCallback = new PayloadCallback() {
+        @Override
+        public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
+            Log.e("ReceivedFrom: ", s);
+            String fromTeacher = new String(payload.asBytes());
+
+            Toast.makeText(StudentDashBoard.this, "ReceivedFrom : "+s, Toast.LENGTH_SHORT).show();
+            Log.e("fromTeacher : ", fromTeacher);
+
+            if(fromTeacher.equals("teacherConfirm8185")){
+                Toast.makeText(StudentDashBoard.this, "Marked ", Toast.LENGTH_SHORT).show();
+                dialog.cancel();
+                connectionsClient.stopAllEndpoints();
+                connectionsClient.stopDiscovery();
+                if(closeHardwares.isBluetoothEnabled()){
+                    closeHardwares.closeBluetooth();
+                }
+                if(closeHardwares.isWifiEnabled()){
+                    closeHardwares.closeWifi();
+                }
+                dialog.cancel();
+
+            }else {
+                dialog.cancel();
+                if(closeHardwares.isBluetoothEnabled()){
+                    closeHardwares.closeBluetooth();
+                }
+                if(closeHardwares.isWifiEnabled()){
+                    closeHardwares.closeWifi();
+                }
+                connectionsClient.stopAllEndpoints();
+                connectionsClient.stopDiscovery();
+            }
+
+        }
+
+        @Override
+        public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
+
+        }
+    };
+
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        connectionsClient.stopDiscovery();
+        connectionsClient.stopAllEndpoints();
+
+        if(closeHardwares.isWifiEnabled()){
+            closeHardwares.closeWifi();
+        }
+        if(closeHardwares.isBluetoothEnabled()){
+            closeHardwares.closeBluetooth();
+        }
+
+        dialog.cancel();
     }
+
+
 
 
     @Override
@@ -197,4 +339,3 @@ public class StudentDashBoard extends AppCompatActivity {
         sDB.close();
     }
 }
-
